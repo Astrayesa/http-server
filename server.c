@@ -6,16 +6,22 @@
 #include <unistd.h>
 #include <string.h>
 
-#define BUFFER_SIZE 256
+#include "http.h"
+
+#define BUFFER_SIZE 1028
 
 int main(){
     // variable declaration
     int socket_fd, client_fd;
     const int opt = 1;
     char buffer[BUFFER_SIZE];
+
     struct sockaddr_in server_addr, client_addr;
-    socklen_t client_addr_size;
-    client_addr_size  = (socklen_t) sizeof(client_addr);
+    socklen_t client_addr_size = (socklen_t) sizeof(client_addr);
+
+    struct http_request req;
+    struct http_response res;
+
     // create socket
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_fd == -1)
@@ -23,6 +29,7 @@ int main(){
         fprintf(stderr, "Socket creation failed. Errno: %s\n", strerror(errno));
         return -1;
     }
+
     // make socket can reuse socket
     if(setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) == -1){
         fprintf(stderr, "Socket reuse failed. Errno: %s\n", strerror(errno));
@@ -54,24 +61,45 @@ int main(){
     }
 
     // read all data from client
-    char *buff;
     char *msg = NULL;
     int pos = 0;
     while (1)
     {
-        buff = (char *)malloc(BUFFER_SIZE);
         int recv_size = recv(client_fd, buffer, BUFFER_SIZE, 0);
-        msg = realloc(msg, sizeof(msg) * BUFFER_SIZE);
+        msg = realloc(msg, pos + BUFFER_SIZE);
         memmove(msg + pos, buffer, recv_size);
         pos += recv_size;
-        free(buff);
         if (recv_size < BUFFER_SIZE || recv_size == -1)
         {
             msg[pos] = '\0';
             break;
         }
     }
-    printf("Message from client: \n%s\n", msg);
+
+    printf("Request:\n%s\n", msg);
+    // parse request
+    if(parse_request(msg, &req) == -1){
+        fprintf(stderr, "Failed to parse request.");
+        return -1;
+    }
+    // print_request(&req);
+
+    // build response
+    if(build_resopnse(&res, &req) == -1){
+        fprintf(stderr, "Failed to create response.");
+        return -1;
+    }
+    // print_response(&res);
+
+    // send response
+    char *response_msg = calloc(1000, sizeof(char));
+    compose_response(&res, response_msg);
+    send(client_fd, response_msg, strlen(response_msg), 0);
+
+    // free memory
+    free(res.header);
+    free(res.body);
+    free(response_msg);
     free(msg);
 
     // cleanup

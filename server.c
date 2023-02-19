@@ -66,7 +66,7 @@ int main(){
     while (1)
     {
         int recv_size = recv(client_fd, buffer, BUFFER_SIZE, 0);
-        msg = realloc(msg, pos + BUFFER_SIZE);
+        msg = (char*) realloc(msg, pos + BUFFER_SIZE);
         memmove(msg + pos, buffer, recv_size);
         pos += recv_size;
         if (recv_size < BUFFER_SIZE || recv_size == -1)
@@ -92,7 +92,7 @@ int main(){
     // print_response(&res);
 
     // send response
-    char *response_msg = calloc(1000, sizeof(char));
+    char *response_msg = (char*) calloc(1000, sizeof(char));
     compose_response(&res, response_msg);
     send(client_fd, response_msg, strlen(response_msg), 0);
 

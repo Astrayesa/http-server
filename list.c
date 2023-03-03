@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+void init_list(struct List *list){
+    list->head = NULL;
+    list->tail = NULL;
+}
+
 struct Node* create_node(char* key, char* value){
     struct Node* new_node = (struct Node*) malloc(sizeof(struct Node));
     new_node->key = key;

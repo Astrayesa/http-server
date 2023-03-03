@@ -19,6 +19,7 @@ struct Node
     struct Node *next;
 };
 
+void init_list(struct List *list);
 struct Node* create_node(char* key, char* value);
 void append(struct List *list, struct Node *node);
 struct Node* get_node(struct List *header_list, char *key);

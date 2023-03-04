@@ -1,4 +1,5 @@
 #include "http.h"
+#include "list.h"
 #include <gtest/gtest.h>
 
 // parsing request test
@@ -16,11 +17,10 @@ TEST(ParseRequest, SuccessCase)
     EXPECT_STREQ(req.method, "GET");
     EXPECT_STREQ(req.uri, "/");
     EXPECT_STREQ(req.version, "HTTP/1.1");
-    EXPECT_STREQ(req.header, 
-        "Host: localhost:8080\r\n"
-        "User-Agent: testcase\r\n"
-    );
+    EXPECT_STREQ(get_node(&req.header, (char*) "Host")->value, "localhost:8080");
+    EXPECT_STREQ(get_node(&req.header, (char*) "User-Agent")->value, "testcase");
     EXPECT_EQ(strlen(req.body), 0);
+    clear_list(&req.header);
 }
 
 TEST(ParseRequest, FailCase)
@@ -48,4 +48,19 @@ TEST(ParseRequest, UnsupportCase){
     EXPECT_STREQ(req.method, "HEAD");
     EXPECT_STREQ(req.uri, "/");
     EXPECT_STREQ(req.version, "HTTP/1.1");
+    clear_list(&req.header);
+}
+
+TEST(ParseHeader, SuccessCase)
+{
+    std::string header =
+        "Host: localhost:8080\r\n"
+        "User-Agent: testcase\r\n";
+    
+    List header_list;
+    // init_list(&header_list);
+    ASSERT_EQ(parse_header((char*) header.c_str(), &header_list), 0);
+    EXPECT_STREQ(get_node(&header_list, (char*) "Host")->value, "localhost:8080");
+    EXPECT_STREQ(get_node(&header_list, (char*) "User-Agent")->value, "testcase");
+    clear_list(&header_list);
 }

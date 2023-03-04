@@ -11,12 +11,13 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_library(http http.c)
+add_library(http http.c list.c)
 add_library(list list.c)
 add_executable(server server.c)
 target_link_libraries(
   server 
   http
+  m
 )
 
 

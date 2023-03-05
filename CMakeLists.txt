@@ -36,7 +36,7 @@ target_link_libraries(
 )
 
 include(CTest)
-add_test(NAME server COMMAND server)
+add_test(NAME server COMMAND server -t)
 add_test(NAME curl COMMAND curl -s http://localhost:8080/hello)
 
 include(GoogleTest)

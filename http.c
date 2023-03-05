@@ -106,17 +106,15 @@ void print_response(struct http_response *res){
 }
 
 int compose_response(struct http_response *res, char *response){
-    sprintf(response, "%s %d %s\r\n", res->version, res->status_code, res->reason_phrase);
+    int loc = sprintf(response, "%s %d %s\r\n", res->version, res->status_code, res->reason_phrase);
     struct Node *current = res->header.head;
     while (current != NULL)
     {
-        sprintf(response, "%s%s: %s\r\n", response, current->key, current->value);
+        loc += sprintf(response + loc, "%s: %s\r\n", current->key, current->value);
         current = current->next;
     }
-    // sprintf(response, "%s\r\n%s", response, res->body);
-    strcat(response, "\r\n");
-    strcat(response, res->body);
-    return 1;
+    sprintf(response + loc, "\r\n%s", res->body);
+    return 0;
 }
 
 void print_header(struct List *header_list){

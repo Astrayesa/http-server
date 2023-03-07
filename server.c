@@ -8,7 +8,7 @@
 
 #include "http.h"
 
-#define BUFFER_SIZE 1028
+#define BUFFER_SIZE 4096
 
 int main(int argc, char *argv[]){
     
@@ -78,8 +78,9 @@ int main(int argc, char *argv[]){
     }
 
     do {
-        req = (struct http_request *)malloc(sizeof(struct http_request));
-        res = (struct http_response *)malloc(sizeof(struct http_response));
+        req = (struct http_request *)calloc(1, sizeof(struct http_request));
+        res = (struct http_response *)calloc(1, sizeof(struct http_response));
+
         // accept connection
         client_fd = accept(socket_fd, (struct sockaddr *)&client_addr, &client_addr_size);
         if (client_fd == -1)
@@ -91,9 +92,17 @@ int main(int argc, char *argv[]){
         // read all data from client
         request_msg = NULL;
         pos = 0;
+
         while (1)
         {
             int recv_size = recv(client_fd, buffer, BUFFER_SIZE, 0);
+            if (recv_size == -1)
+            {
+                fprintf(stderr, "Error recving data. Errno: %s\n", strerror(errno));
+                request_msg = "";
+                break;
+            }
+            
             request_msg = (char *)realloc(request_msg, pos + BUFFER_SIZE);
             memmove(request_msg + pos, buffer, recv_size);
             pos += recv_size;
@@ -107,12 +116,11 @@ int main(int argc, char *argv[]){
         // parse request
         if (parse_request(request_msg, req) == -1)
         {
-            fprintf(stderr, "Failed to parse request.");
-            return -1;
+            fprintf(stderr, "Failed to parse request. Request message: %s\n", request_msg);
+            // harusnya return 400
+            continue;
         }
-        // print_request(&req);
 
-        // build response
         if (build_resopnse(req, res) == -1)
         {
             fprintf(stderr, "Failed to create response.");

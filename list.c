@@ -38,6 +38,11 @@ struct Node* get_node(struct List *header_list, char *key){
 }
 
 int clear_list(struct List *list){
+    if (list == NULL)
+    {
+        return -1;
+    }
+    
     struct Node *current = list->head;
     struct Node *next;
     while(current != NULL){

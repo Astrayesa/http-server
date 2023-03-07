@@ -36,6 +36,15 @@ TEST(ParseRequest, FailCase)
     ASSERT_EQ(parse_request((char*) request.c_str(), &req), -1);
 }
 
+TEST(ParseRequest, EmptyRequest){
+    std::string request = "";
+    http_request req;
+
+    init_list(&req.header);
+    ASSERT_EQ(parse_request((char*) request.c_str(), &req), -1);
+    clear_list(&req.header);
+}
+
 TEST(ParseRequest, UnsupportCase){
     std::string request =
     "HEAD / HTTP/1.1\r\n"
